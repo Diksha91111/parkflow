@@ -1,8 +1,25 @@
 {
+    "buildCommand": "cd frontend && npm install && npm run build",
+    "outputDirectory": "frontend/dist",
     "rewrites": [
         {
             "source": "/(.*)",
             "destination": "/index.html"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "Cross-Origin-Opener-Policy",
+                    "value": "same-origin-allow-popups"
+                },
+                {
+                    "key": "Content-Security-Policy",
+                    "value": "script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com; frame-src https://accounts.google.com; connect-src 'self' https://accounts.google.com https://parkflow-g0xi.onrender.com;"
+                }
+            ]
         }
     ]
 }
