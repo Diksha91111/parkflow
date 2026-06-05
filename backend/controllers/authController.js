@@ -249,7 +249,8 @@ exports.updateProfile = async (req, res) => {
     }
 
     if (req.file) {
-      user.profilePicture = '/uploads/' + req.file.filename;
+      // Cloudinary storage returns the full CDN URL in req.file.path
+      user.profilePicture = req.file.path || req.file.secure_url || req.file.url;
     }
 
     const updatedUser = await user.save();

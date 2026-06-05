@@ -31,13 +31,15 @@ cloudinary.config({
 const app = express();
 const server = http.createServer(app);
 
-// Frontend URL
-const FRONTEND_URL = "https://parkflow-j7r784lpp-drsuryawanshi911-1688s-projects.vercel.app";
+// Frontend URLs — read from env, supports multiple comma-separated URLs
+const FRONTEND_URLS = (process.env.FRONTEND_URL || 'https://parkflow-five.vercel.app')
+  .split(',')
+  .map(u => u.trim());
 
 // Setup Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: FRONTEND_URL,
+    origin: FRONTEND_URLS,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true
   }
@@ -60,13 +62,20 @@ app.use(express.urlencoded({ extended: true }));
 
 // CORS Configuration
 app.use(cors({
-  origin: FRONTEND_URL,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Render health checks)
+    if (!origin) return callback(null, true);
+    if (FRONTEND_URLS.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('CORS: Origin not allowed — ' + origin));
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Static uploads folder
+// Static uploads folder (fallback; profile pics should use Cloudinary)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
@@ -116,4 +125,5 @@ const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT} with WebSockets enabled`);
+  console.log(`Allowed origins: ${FRONTEND_URLS.join(', ')}`);
 });
